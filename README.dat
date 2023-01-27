@@ -1,0 +1,155 @@
+--------------------------------------------------------------------------------------------
+FiT object analysis package 
+Gregor Skok, Faculty of Mathematics and Physics, University of Ljubljana, Slovenia, 2023
+
+Contact:
+Gregor.Skok@fmf.uni-lj.si
+Gregor.Skok@gmail.com
+
+File last modified: 2023-01-27
+
+--------------------------------------------------------------------------------------------
+SUMMARY
+
+The FiT (Forward-in-Time) object analysis package can be used to identify and track objects in a sequence of 3D (or 2D) fields. The package is designed in a very general way - it does not care which variable is used for tracking (precipitation, vertical velocity, ...). The output from the package can be used to determine object statistics and other object-related properties such as location, size, lifespan, and trajectories. The package is written in C++ and includes MPI (Message Passing Interface) support. Its behavior is controlled by a namelist. 
+
+--------------------------
+HOW TO COMPILE 
+
+The FiT object analysis package is written in C++ and needs different libraries to compile. These include graphic library gd (for output of PNG figures) and libraries such as NetCDF and hdf5 (if you want to use the NetCDF files as input/output). Typically, all needed libraries can be easily installed as packages on the most widely used Linux distributions, such as Ubuntu or Fedora.  
+
+Below is a command which will install all needed libraries in a freshly installed ubuntu system (tested on ubuntu server 18.04.2 LTS in May 2019):
+-	for Basic version: sudo apt-get install g++ libgd-dev  
+-	for Basic + Netcdf version: sudo apt-get install g++ libgd-dev libnetcdf-dev
+Once this is done, one can execute the compile script by typing ./compile_FiT_basic.sh (for no NetCDF support) or ./compile_FiT_basic_with_NetCDF4.sh (for NetCDF support) to compile the executable. If the compilation is successful, there should be a new executable called FiT_Object_analysis_basic.exex or FiT_Object_analysis_basic_with_NetCDF4.exex. 
+
+--------------------------------------------------
+HOW TO RUN 
+
+After successful compilation, there should be a new executable file called FiT_Object_analysis_basic.exex (or FiT_Object_analysis_basic_with_NetCDF4.exex). A namelist controls the behavior of the executable file.
+
+The executable should be run with a namelist parameter, for example, "./FiT_Object_analysis_basic.exex namelist_file"
+
+A sample namelist with sample input files is provided in the "sample_files" folder.
+
+For testing purposes, the executable can be run with the sample namelist with the command: "./FiT_Object_analysis_basic.exex sample_files/sample_namelist1.dat". The test will use the sample namelist with the sample input files, and the output files will be written to "out_sample_files" folder.
+
+The input files can be either ASCII CSV files, Fortran binary files, or NetCDF files. Fortran binary files are system dependent and might not work on all systems. The NetCDF files are not system dependent and are, therefore, the recommended type of input files. More information on the required type and filenames of the NetCDF input files can be found in the sample namelist. 
+
+--------------------------------------------------
+HOW DOES THE SOFTWARE WORK
+
+The FiT object analysis package can be used to identify and track objects in a sequence of 3D (or 2D) fields. The package is designed in a very general way - it does not care which variable is used for tracking (precipitation, vertical velocity, ...).
+
+Because the software is very general, the user has to perform the thresholding (and possibly smoothing) beforehand and supply the resulting files as input to the FiT package. The FiT package then uses these files to identify and track objects and write the output. The input files to the software should be 3D fields (if a user wants to analyze 2D fields, he should prepare 3D fields with only one gridpoint in the "z" dimension) - with the same dimensions as the original field. The input fields to FiT software can only contain integer values corresponding to cascading thresholds - a higher value corresponds to a higher threshold. See the example below on how this should be done:
+
+a) A 2D precipitation field of dimension 20x7x1. For demonstration purposes, let us assume each number represents one gridpoint where the value is a precipitation amount (for example, number 3 corresponds to 3 mm). The value is always a single digit (it does not equal or exceed 10 mm). 
+00000111100000000000
+00012377320000000000
+00001211100000000000
+00000000000010000000
+00000000001333100000
+00000000000010000000
+00003700000000000000
+
+b) The cascading thresholds are applied (for more information on the concept of the cascading thresholds, look at the Skok et al., 2013 paper - reference given below). The regions with values below the lowest threshold should have a value of zero in the input field. The regions with values between the lowest and the next higher threshold should have the value 1 (and so on to the highest threshold). The areas with values higher than the highest threshold should have the value equal to the number_of_thresholds parameter in the namelist.
+
+We will use two thresholds - a 6 mm and a 2 mm threshold. The resulting field after thresholding is, therefore:  
+00000000000000000000
+00001122110000000000
+00000100000000000000
+00000000000000000000
+00000000000111000000
+00000000000000000000
+00001200000000000000
+
+This is the type of input field the software will accept - the user has to prepare this kind of fields. 
+
+c) The object files produced by the FiT software
+00000000000000000000
+00001111110000000000
+00000100000000000000
+00000000000000000000
+00000000000222000000
+00000000000000000000
+00003300000000000000
+
+In this case, the software found three objects. The first one has an index of 1, the second 2, and the third 3. These indexes correspond to indexes of objects in the ASCII files 3Dobject_tree.txt and 4Dobject_tree.txt. The ASCII files contain the properties of objects - such as location, size, and direction of movement,... 
+
+---------------------------------------------------
+THE "3D" AND "4D" OBJECTS
+
+There are two types of output files: 3D and 4D - these correspond to "3D" and "4D" objects. In both cases, the cascading thresholds are applied, and objects are identified as shown in the above a), b), and c) steps. With the c) step, the identification of 3D objects is finished, and the 3D objects are written to the output files. So far, no comparison of the objects in the previous and next timestep has been performed. The 3D objects are, therefore, objects unrelated in time - and their lifespan is always only one timestep. We name them 3D objects since we calculate them in three spatial dimensions, not the fourth dimension (time). Some object properties, such as lifespan and direction of movement, cannot be determined from 3D objects (but other properties, such as size and location, can be determined). The 3D objects can only consist of one piece, while 4D objects can comprise more pieces. 
+
+In order to study the time evolution of objects, a temporal matching of objects has to be performed after 3D objects are identified. The "temporal matching" is done by analyzing the overlap of objects in consecutive timesteps. Below is an example:
+
+c') - 3D objects in the first (left) and second (right) timesteps
+00000000000000000000  00000000000000000000
+00001111110000000000  00001110000002200000
+00000100000000000000  00000100000000000000
+00000000000000000000  00000000000000000000
+00000000000222000000  00000000000330000000
+00000000000000000000  00000000000000000000
+00003300000000000000  00000000000000000000
+
+d) - 4D objects in the first (left) and second (right) timesteps after temporal matching
+00000000000000000000  00000000000000000000
+00001111110000000000  00001110000004400000
+00000100000000000000  00000100000000000000
+00000000000000000000  00000000000000000000
+00000000000222000000  00000000000220000000
+00000000000000000000  00000000000000000000
+00003300000000000000  00000000000000000000
+
+In the first timestep, the algorithm found three 3D objects (index 1,2,3) and three 3D objects (index 1,2,3) in the second. The algorithm looks at the overlaps of these 3D objects in consecutive timesteps to identify 4D objects. Since 3D object 1 from the first timestep overlaps with 3D object 1 in the second timestep - the algorithm recognizes that these two 3D objects are part of the same 4D object (index 1 in d) ). The same is true for 3D objects 2 (first timestep) and 3 (second timestep) - while other 3D objects (3 in first timestep and 2 in second timestep) do not have any overlap. To summarize: the algorithm identified four 4D objects. Two 4D objects existed in both timesteps (indexes 1 and 2), while 4D object 2 existed only in the first and 4D object 4 only in the second. The 4D objects can span many timesteps - they can even consist of more than one piece at some given timestep (not shown in this example). The value of the parameter horizontal_distance_limit_for_merging influences the merging of individual 3D objects into a multi-piece 4D object (see the sample namelist for more information).
+
+More information about the cascading thresholds and the temporal matching can be found in Skok et al. 2013 paper - reference is given below. 
+
+--------------------------------------------------
+DESCRIPTION OF THE OUTPUT FILES
+
+There are three types of output files:
+
+- OBJECT FIELDS for each timestep. These can be of type CSV, Fortran binary files, or NetCDF (if supported). These files are the same dimension as the input fields and contain the integer indexes of the 3D or 4D objects. The user can use these files to see the exact extent of each object at each timestep. 
+
+- THE ASCII SUMMARY FILES (out_3Dobject_tree.txt and out_4Dobject_tree.txt). These files contain the summary of selected object properties - such as object index, timestep, location, volume, lifespan, and trajectory. The user can use the ASCII file to perform some statistics on objects (e.g., number of objects, distribution by object size, location, lifespan, and trajectories). The object index in the ASCII file corresponds to the object index in the object field file – users can use these to calculate additional user-defined object properties.  
+
+- THE PNG FILES for each timestep. The object field files are visualized as PNG files so the user can visualize what the algorithm is doing. The visualization is performed so that each object is assigned a unique color according to its index. If the 4D object retains its colors through several timesteps, the algorithm identifies it as one 4D object. The object's color is darkened where the object is thicker in the "z" dimension - this gives the user the ability to visually see where the object is thinner and thicker. Only the lowest object (according to "z" dimension) is used to set the color in the image - for example, if more objects are present above each other, the color will be determined by the lowest (in z dimension) object only.   
+
+--------------------------------------------------
+THE NAMELIST
+
+The namelist determines the behavior of the executable. For more detailed information on the namelist please look at the sample namelist in the sample_files folder.
+
+-------------------------------------------------
+PARALLEL COMPUTING
+
+The code does support parallel computing using the distributed memory environment using MPI - for example, openMPI can be used. The source code for MPI (CC_Object_analysis_FiT_basic_with_NetCDF4_and_MPI.cc) is different from the single process code (CC_Object_analysis_FiT_basic.cc or  CC_Object_analysis_FiT_basic_with_NetCDF4.cc). The compile script is also different (compile_FiT_basic_with_NetCDF4_and_MPI.sh).
+Some additional libraries are needed to compile the MPI version. The command below installs all needed libraries in a freshly installed ubuntu system (tested on ubuntu server 18.04.2 LTS in May 2019):
+
+sudo apt-get install g++ libgd-dev libnetcdf-dev libboost-serialization-dev libopenmpi-dev
+
+The parallel version will run significantly faster than a non-parallel version if more than one processor is used. However, the non-parallel version will run faster if only one processor is used.
+
+The software was tested with openMPI, so this is the recommended MPI implementation (although there is no reason why it should not work on other MPI implementations such as MPICH2). 
+
+Once the parallel executable is compiled, one can run it with the command similar to "mpirun -np 2 ./ FiT_Object_analysis_basic_with_NetCDF4_and_MPI.exex namelist_file", where the "-np 2" means two processes will be used.
+
+The parallel version of the software has to be run with at least two processes. If only one process is used, the software will freeze while running. If one wants to use only one process, the non-parallel version of the software can be used.
+
+-------------------------------------------------
+CITING and REFERENCES
+
+The users who publish publications involving research that was at least partly based on the results provided by the FiT software are strongly encouraged to cite the three papers listed below. These papers also best describe the details of how the FiT algorithm works. 
+
+Skok, G., Bacmeister, J. T., Tribbia, J., 2013: Analysis of tropical cyclone precipitation using an object-based algorithm. Journal of climate, vol. 26, iss. 8, 2563-2579.
+
+Skok, G., Tribbia, J., Rakovec, J., 2010: Object-based analysis and verification of WRF model precipitation in the low- and Midlatitude Pacific Ocean. Monthly weather review,  vol. 138, no. 12, 4561-4575
+
+Skok, G., Tribbia, J., Rakovec, J., Brown, B., 2009: Object-based analysis of satellite-derived precipitation systems over the low-and midlatitude Pacific Ocean. Monthly weather review, vol. 137,3196-3218.
+
+-------------------------------------------------
+LICENSE
+
+Please refer to the LICENSE file. 
+

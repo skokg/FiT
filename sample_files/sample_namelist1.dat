@@ -1,0 +1,82 @@
+# --------------------------------------------------------------------------------------------
+# Sample namelist for FiT object analysis package 
+# Gregor Skok, Faculty of Mathematics and Physics, University of Ljubljana, Slovenia, 2023
+#
+# More information about FiT object-based analysis is available in:
+# - Skok et al., 2013: Analysis of tropical cyclone precipitation using an object-based algorithm. Journal of Climate.
+# - Skok, G., Tribbia, J., Rakovec, J., 2010: Object-based analysis and verification of 
+#    WRF model precipitation in the low- and Midlatitude Pacific Ocean. Monthly weather review,  vol. 138, no. 12, 4561-4575
+# - Skok, G., Tribbia, J., Rakovec, J., Brown, B., 2009: Object-based analysis of satellite-derived 
+#    precipitation systems over the low-and midlatitude Pacific Ocean. Monthly weather review, vol. 137,3196-3218.
+# --------------------------------------------------------------------------------------------
+
+# Input file type. 1=fortran binary file, 2=netcdf file, 3=CSV ASCII file 
+# To able to use the NetCDF files the software has to be compiled with the NetCDF support
+# Netcdf files have to have the same structure (dimension names, variable name, ...)
+# as the sample netcdf files in "sample_files" folder.
+# The newline characters and empty lines are ignored in the CSV files. For the structure  
+# of the CSV file, please look at the sample CSV files in the "sample_files" folder.
+# The sequence of values in CSV files changes fastest with the x dimension, then the y dimension, and then the z dimension.
+input_file_type=2
+
+# Ouput file type. 1=fortran binary file, 2=netcdf file, 3=CSV ASCII file  
+# To able to use NetCDF, the software has to be compiled with the NetCDF support
+output_file_type=2
+
+# The location with file prefix for input files. The files should have the 
+# filenames input_file_prefixCCCC.dat (Fortran file) or input_file_prefixCCCCC.nc 
+# (netcdf file) or input_file_prefixCCCCC.csv (CSV ascii file). CCCCC is the counter with five digits which starts at 00000.
+# On a Linux system using the bash shell, the following command can usually be used to create CCCCC.dat  
+# links to a sequence of files with different filenames located in the same folder:
+# a=0;for i in $(ls); do new=$(printf "%05d.dat" ${a});  ln -sf ${i} ${new};   let a=a+1; done
+input_file_prefix = sample_files/sample_input_field1_
+
+# The location with file prefix for output files. 
+output_file_prefix = out_sample_files/out1_
+
+# The dimensions of 3D field in input files
+dimx = 379
+dimy = 100
+dimz = 1
+
+# Number of timesteps to analyze
+number_of_timesteps = 16
+	
+# The number of cascading thresholds to be used. The regions with values below the lowest 
+# threshold should have a value of 0 in the input field. The regions with values between 
+# the lowest threshold and the next higher threshold should have the value 1, and so on 
+# to the highest threshold. The areas with values higher than the highest threshold should 
+# have a value equal to number_of_thresholds
+# If number_of_thresholds=1, only one threshold is used (no cascading thresholds). 
+# If a value greater than number_of_thresholds is found in the input field, the software 
+# stops with an error message. 
+number_of_thresholds = 3
+
+# The horizontal distance limit for merging 3D objects into 4D objects. A value of -1 disables the limit. 
+# If a positive value is used, the merging of each individual 3D object into a multi-piece 4D object 
+# is only performed if the distance between the centers of the 4D object and the 3D object 
+# is smaller than the prescribed value. The value represents the horizontal Euclidian 
+# distance in x and y dimensions (distance in z dimension is ignored) expressed with the number of 
+# grid points (e.g., a value of 200 represents the distance of 200 gridpoints). 
+horizontal_distance_limit_for_merging = -1
+
+# Is the domain periodic in x dimension?
+# 0=no, 1=yes
+domain_periodic_in_x_dimension = 0
+
+# Should the software write output files related to 3D objects (objects not matched in time)?
+# 0=no, 1=yes
+output_3D_objects=1;
+
+# Should the software write output files related to 4D objects (objects matched in time according to FiT)?
+# 0=no, 1=yes
+output_4D_objects=1;
+
+# Should the software write any PNG output files? Please be aware that generating the PNG files 
+# might significantly increase computation time in certain cases.
+# 0=no, 1=yes
+output_png_files=1;
+
+
+
+
