@@ -1,0 +1,9 @@
+cff-version: 1.1.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Gregor
+    given-names: Skok
+    orcid: https://orcid.org/0000-0003-0265-1205
+title: Forward in Time (FiT) object analysis and tracking package
+version: v2023_01_27
+date-released: 2023-07-17
