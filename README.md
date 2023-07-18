@@ -2,7 +2,7 @@
 
 --- Description:
 
-The FiT (Forward-in-Time) object analysis package can be used to identify and track objects in a sequence of 3D (or 2D) fields. The package is designed in a very general way - it does not care which variable is used for tracking (precipitation, vertical velocity, ...). The output from the package can be used to determine object statistics and other object-related properties such as location, size, lifespan, and trajectories. The package is written in C++ and includes MPI (Message Passing Interface) support. Its behavior is controlled by a namelist. 
+The FiT (Forward-in-Time) object analysis and tracking package can be used to identify and track objects in a sequence of 3D (or 2D) fields. The package is designed in a very general way - it does not care which variable is used for tracking (precipitation, vertical velocity, ...). The output from the package can be used to determine object statistics and other object-related properties such as location, size, lifespan, and trajectories. The package is written in C++ and includes MPI (Message Passing Interface) support. Its behavior is controlled by a namelist. 
 
 For a more detailed description of how the software works and how to compile and use it, please refer to the README.dat file. The folder "sample_files" contains a sample dataset with a sample namelist, so once the software is successfully compiled, one can test if it works as expected. 
 
