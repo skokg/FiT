@@ -11,12 +11,12 @@ File last modified: 2023-01-27
 --------------------------------------------------------------------------------------------
 SUMMARY
 
-The FiT (Forward-in-Time) object analysis package can be used to identify and track objects in a sequence of 3D (or 2D) fields. The package is designed in a very general way - it does not care which variable is used for tracking (precipitation, vertical velocity, ...). The output from the package can be used to determine object statistics and other object-related properties such as location, size, lifespan, and trajectories. The package is written in C++ and includes MPI (Message Passing Interface) support. Its behavior is controlled by a namelist. 
+The FiT (Forward-in-Time) object analysis and tracking package can be used to identify and track objects in a sequence of 3D (or 2D) fields. The package is designed in a very general way - it does not care which variable is used for tracking (precipitation, vertical velocity, ...). The output from the package can be used to determine object statistics and other object-related properties such as location, size, lifespan, and trajectories. The package is written in C++ and includes MPI (Message Passing Interface) support. Its behavior is controlled by a namelist. 
 
 --------------------------
 HOW TO COMPILE 
 
-The FiT object analysis package is written in C++ and needs different libraries to compile. These include graphic library gd (for output of PNG figures) and libraries such as NetCDF and hdf5 (if you want to use the NetCDF files as input/output). Typically, all needed libraries can be easily installed as packages on the most widely used Linux distributions, such as Ubuntu or Fedora.  
+The FiT object analysis and tracking package is written in C++ and needs different libraries to compile. These include graphic library gd (for output of PNG figures) and libraries such as NetCDF and hdf5 (if you want to use the NetCDF files as input/output). Typically, all needed libraries can be easily installed as packages on the most widely used Linux distributions, such as Ubuntu or Fedora.  
 
 Below is a command which will install all needed libraries in a freshly installed ubuntu system (tested on ubuntu server 18.04.2 LTS in May 2019):
 -	for Basic version: sudo apt-get install g++ libgd-dev  
@@ -112,7 +112,7 @@ There are three types of output files:
 
 - OBJECT FIELDS for each timestep. These can be of type CSV, Fortran binary files, or NetCDF (if supported). These files are the same dimension as the input fields and contain the integer indexes of the 3D or 4D objects. The user can use these files to see the exact extent of each object at each timestep. 
 
-- THE ASCII SUMMARY FILES (out_3Dobject_tree.txt and out_4Dobject_tree.txt). These files contain the summary of selected object properties - such as object index, timestep, location, volume, lifespan, and trajectory. The user can use the ASCII file to perform some statistics on objects (e.g., number of objects, distribution by object size, location, lifespan, and trajectories). The object index in the ASCII file corresponds to the object index in the object field file – users can use these to calculate additional user-defined object properties.  
+- THE ASCII SUMMARY FILES (out_3Dobject_tree.txt and out_4Dobject_tree.txt). These files contain the summary of selected object properties - such as object index, timestep, location, volume, lifespan, and trajectory. The user can use the ASCII file to perform some statistics on objects (e.g., number of objects, distribution by object size, location, lifespan, and trajectories). The object index in the ASCII file corresponds to the object index in the object field file Â– users can use these to calculate additional user-defined object properties.  
 
 - THE PNG FILES for each timestep. The object field files are visualized as PNG files so the user can visualize what the algorithm is doing. The visualization is performed so that each object is assigned a unique color according to its index. If the 4D object retains its colors through several timesteps, the algorithm identifies it as one 4D object. The object's color is darkened where the object is thicker in the "z" dimension - this gives the user the ability to visually see where the object is thinner and thicker. Only the lowest object (according to "z" dimension) is used to set the color in the image - for example, if more objects are present above each other, the color will be determined by the lowest (in z dimension) object only.   
 
