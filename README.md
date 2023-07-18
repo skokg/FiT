@@ -1,4 +1,4 @@
-# The FiT Object Analysis Package 
+# The FiT Object Analysis and Tracking Package 
 
 --- Description:
 
